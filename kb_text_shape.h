@@ -14319,12 +14319,10 @@ static kbts_cmap_subtable_pointer kbts_GetCmapSubtable(kbts_cmap *Cmap, kbts_un 
 {
   kbts_encoding_record *Records = (kbts_encoding_record *)(Cmap + 1);
   kbts_encoding_record *Record = &Records[Index];
-
   kbts_cmap_subtable_pointer Result;
   Result.PlatformId = Record->PlatformId;
   Result.EncodingId = Record->EncodingId;
-  Result.Subtable = KBTS_POINTER_OFFSET(kbts_u16, Cmap, Record->SubtableOffset);
-
+  Result.Subtable   = KBTS_POINTER_OFFSET(kbts_u16, Cmap, Record->SubtableOffset);
   return Result;
 }
 
@@ -16050,16 +16048,16 @@ KBTS_EXPORT kbts_glyph kbts_CodepointToGlyph(kbts_font *Font, kbts_u32 Codepoint
   Result.Codepoint = Codepoint;
 
   // Look up Unicode properties.
-  Result.Decomposition = kbts_GetUnicodeDecomposition(Codepoint);
-  Result.JoiningType = kbts_GetUnicodeJoiningType(Codepoint);
-  Result.UnicodeFlags = kbts_GetUnicodeFlags(Codepoint);
-  kbts_u16 SyllabicInfo = kbts_GetUnicodeSyllabicInfo(Codepoint);
-  Result.SyllabicClass = kbts_GetSyllabicClass(SyllabicInfo);
+  Result.Decomposition    = kbts_GetUnicodeDecomposition(Codepoint);
+  Result.JoiningType      = kbts_GetUnicodeJoiningType(Codepoint);
+  Result.UnicodeFlags     = kbts_GetUnicodeFlags(Codepoint);
+  kbts_u16 SyllabicInfo   = kbts_GetUnicodeSyllabicInfo(Codepoint);
+  Result.SyllabicClass    = kbts_GetSyllabicClass(SyllabicInfo);
   Result.SyllabicPosition = kbts_GetSyllabicPosition(SyllabicInfo);
-  Result.CombiningClass = kbts_GetUnicodeCombiningClass(Codepoint);
-  Result.UseClass = kbts_GetUnicodeUseClass(Codepoint);
-  Result.Script = kbts_GetUnicodeScript(Codepoint);
-  Result.ParentInfo = kbts_GetUnicodeParentInfo(Codepoint);
+  Result.CombiningClass   = kbts_GetUnicodeCombiningClass(Codepoint);
+  Result.UseClass         = kbts_GetUnicodeUseClass(Codepoint);
+  Result.Script           = kbts_GetUnicodeScript(Codepoint);
+  Result.ParentInfo       = kbts_GetUnicodeParentInfo(Codepoint);
 
   kbts_u16 *CmapBase = Font->Cmap;
   if(CmapBase)
@@ -16078,8 +16076,8 @@ KBTS_EXPORT kbts_glyph kbts_CodepointToGlyph(kbts_font *Font, kbts_u32 Codepoint
 
     case 2:
     {
-      kbts_cmap_2 *Cmap2 = (kbts_cmap_2 *)CmapBase;
-      kbts_sub_header *SubHeaders = KBTS_POINTER_AFTER(kbts_sub_header, Cmap2);
+      kbts_cmap_2*     Cmap2      = (kbts_cmap_2 *)CmapBase;
+      kbts_sub_header* SubHeaders = KBTS_POINTER_AFTER(kbts_sub_header, Cmap2);
 
       kbts_u32 High = (Codepoint >> 8) & 0xFF;
 
@@ -16090,57 +16088,49 @@ KBTS_EXPORT kbts_glyph kbts_CodepointToGlyph(kbts_font *Font, kbts_u32 Codepoint
 
       // The Microsoft documentation doesn't mention that the SubHeaderKeys are indices multiplied by 8, for some
       // reason..! The Apple documentation does.
-      kbts_u16 SubHeaderIndex = Cmap2->SubHeaderKeys[High] / 8;
+      kbts_u16 SubHeaderIndex    = Cmap2->SubHeaderKeys[High] / 8;
       kbts_sub_header *SubHeader = &SubHeaders[SubHeaderIndex];
-
-      if(!SubHeaderIndex)
-      {
+      if (!SubHeaderIndex) {
         // With SubHeader 0, we only use the first byte.
         Codepoint = High;
       }
-      else
-      {
+      else {
         Codepoint = Codepoint & 0xFF;
       }
-
       kbts_u32 Offset = Codepoint - SubHeader->FirstCode;
       if(Offset < SubHeader->EntryCount)
       {
-        kbts_u16 *GlyphIds = KBTS_POINTER_OFFSET(kbts_u16, &SubHeader->IdRangeOffset, SubHeader->IdRangeOffset);
-        kbts_u16 GlyphId = GlyphIds[Offset];
-        if(GlyphId)
-        {
+        kbts_u16* GlyphIds = KBTS_POINTER_OFFSET(kbts_u16, &SubHeader->IdRangeOffset, SubHeader->IdRangeOffset);
+        kbts_u16  GlyphId = GlyphIds[Offset];
+        if(GlyphId) {
           GlyphId += SubHeader->IdDelta;
         }
-
         Result.Id = GlyphId;
       }
     } break;
 
     case 4:
     {
-      kbts_cmap_4 *Cmap4 = (kbts_cmap_4 *)CmapBase;
-      kbts_un SegmentCount = Cmap4->SegmentCountTimesTwo / 2;
-      kbts_u16 *EndCodes = KBTS_POINTER_AFTER(kbts_u16, Cmap4);
-      kbts_u16 *StartCodes = EndCodes + SegmentCount + 1;
-      kbts_s16 *IdDeltas = (kbts_s16 *)(StartCodes + SegmentCount);
-      kbts_u16 *IdRangeOffsets = (kbts_u16 *)(IdDeltas + SegmentCount);
-      kbts_un SegmentIndexOffset = 0;
-
+      kbts_cmap_4* Cmap4 = (kbts_cmap_4*)CmapBase;
+      kbts_un   SegmentCount       = Cmap4->SegmentCountTimesTwo / 2;
+      kbts_u16* EndCodes           = KBTS_POINTER_AFTER(kbts_u16, Cmap4);
+      kbts_u16* StartCodes         = EndCodes + SegmentCount + 1;
+      kbts_s16* IdDeltas           = (kbts_s16 *)(StartCodes + SegmentCount);
+      kbts_u16* IdRangeOffsets     = (kbts_u16 *)(IdDeltas + SegmentCount);
+      kbts_un   SegmentIndexOffset = 0;
       if(SegmentCount)
       {
         while(SegmentCount > 1)
         {
-          kbts_un HalfCount = SegmentCount / 2;
+          kbts_un HalfCount  = SegmentCount / 2;
           SegmentIndexOffset = (EndCodes[SegmentIndexOffset + HalfCount - 1] < Codepoint) ? (SegmentIndexOffset + HalfCount) : SegmentIndexOffset;
-          SegmentCount -= HalfCount;
+          SegmentCount      -= HalfCount;
         }
       }
-
       kbts_u16 Start = StartCodes[SegmentIndexOffset];
       if((Codepoint >= Start) && (Codepoint <= EndCodes[SegmentIndexOffset]))
       {
-        kbts_s16 Delta = IdDeltas[SegmentIndexOffset];
+        kbts_s16 Delta       = IdDeltas      [SegmentIndexOffset];
         kbts_u16 RangeOffset = IdRangeOffsets[SegmentIndexOffset];
 
         kbts_u16 GlyphId = (kbts_u16)Delta;
@@ -16160,42 +16150,34 @@ KBTS_EXPORT kbts_glyph kbts_CodepointToGlyph(kbts_font *Font, kbts_u32 Codepoint
     {
       kbts_cmap_6 *Cmap6 = (kbts_cmap_6 *)CmapBase;
       kbts_u16 *GlyphIds = KBTS_POINTER_AFTER(kbts_u16, Cmap6);
-
       kbts_un Offset = Codepoint - Cmap6->FirstCode;
-      if(Offset < Cmap6->EntryCount)
-      {
+      if(Offset < Cmap6->EntryCount) {
         Result.Id = GlyphIds[Offset];
       }
     } break;
 
     case 12:
     {
-      kbts_cmap_12_13 *Cmap12 = (kbts_cmap_12_13 *)CmapBase;
-      kbts_sequential_map_group *Groups = KBTS_POINTER_AFTER(kbts_sequential_map_group, Cmap12);
-
-      kbts_un GlyphId = 0;
+      kbts_cmap_12_13*           Cmap12 = (kbts_cmap_12_13 *)CmapBase;
+      kbts_sequential_map_group* Groups = KBTS_POINTER_AFTER(kbts_sequential_map_group, Cmap12);
+      kbts_un GlyphId     = 0;
       kbts_un GroupCount = Cmap12->GroupCount;
       if(GroupCount)
       {
-        while(GroupCount > 1)
-        {
+        while(GroupCount > 1) {
           kbts_un HalfCount = GroupCount / 2;
-          Groups = (Groups[HalfCount - 1].EndCharacterCode < Codepoint) ? (Groups + HalfCount) : Groups;
-          GroupCount -= HalfCount;
+          Groups            = (Groups[HalfCount - 1].EndCharacterCode < Codepoint) ? (Groups + HalfCount) : Groups;
+          GroupCount       -= HalfCount;
         }
       }
-
-      if((Codepoint >= Groups->StartCharacterCode) && (Codepoint <= Groups->EndCharacterCode))
-      {
+      if((Codepoint >= Groups->StartCharacterCode) && (Codepoint <= Groups->EndCharacterCode)) {
         kbts_un Offset = Codepoint - Groups->StartCharacterCode;
         GlyphId = Groups->StartGlyphId + Offset;
       }
-
       Result.Id = (kbts_u16)GlyphId;
     } break;
     }
   }
-
   if(Font->Gdef)
   {
     Result.Classes = kbts_GlyphClasses(Font, Result.Id);
@@ -16212,7 +16194,6 @@ KBTS_EXPORT kbts_glyph kbts_CodepointToGlyph(kbts_font *Font, kbts_u32 Codepoint
       Result.Classes.Class = KBTS_GLYPH_CLASS_MARK;
     }
   }
-
   return Result;
 }
 
@@ -21970,7 +21951,7 @@ KBTS_EXPORT kbts_un kbts_ReadFontData(kbts_font *Font, void *Scratch, kbts_un Sc
     ByteSwapContext.PointerCapacity = ScratchSize / sizeof(kbts_u32);
     ByteSwapContext.Pointers        = (kbts_u32 *)Scratch;
 
-    kbts_un TotalLookupCount = 0;
+    kbts_un TotalLookupCount   = 0;
     kbts_un TotalSubtableCount = 0;
 
     kbts_gdef *Gdef = Font->Gdef;
@@ -22939,27 +22920,27 @@ static void kbts_BreakAddCodepoint_(kbts_break_state *State, kbts_u32 Codepoint,
 #define KBTS_BREAK2(Flags, Position0, Position1) do {FlagState |= ((Flags) << (8 * (Position0))) | ((Flags) << (8 * (Position1)));} while(0)
   if(!kbts_BreakStateIsValid(State)) return;
 
-  kbts_u8 Script = kbts_GetUnicodeScript(Codepoint);
   kbts_unicode_bidirectional_class BidirectionalClass = kbts_GetUnicodeBidirectionalClass(Codepoint);
-  kbts_u8 UnicodeFlags = kbts_GetUnicodeFlags(Codepoint);
-  kbts_u32 MatchingBracket = kbts_GetUnicodeMatchingBracket(Codepoint);
-  kbts_u8 GraphemeBreakClass = kbts_GetUnicodeGraphemeBreakClass(Codepoint);
-  kbts_u8 LineBreakClass = kbts_GetUnicodeLineBreakClass(Codepoint);
-  kbts_u8 WordBreakClass = kbts_GetUnicodeWordBreakClass(Codepoint);
-  kbts_u8 LastScript = State->LastScripts[0];
-  kbts_u32 FlagState = State->FlagState << 8;
-  kbts_u8 LastLineBreakClass = State->LastLineBreakClass;
+  kbts_u8  Script             = kbts_GetUnicodeScript(Codepoint);
+  kbts_u8  UnicodeFlags       = kbts_GetUnicodeFlags(Codepoint);
+  kbts_u32 MatchingBracket    = kbts_GetUnicodeMatchingBracket(Codepoint);
+  kbts_u8  GraphemeBreakClass = kbts_GetUnicodeGraphemeBreakClass(Codepoint);
+  kbts_u8  LineBreakClass     = kbts_GetUnicodeLineBreakClass(Codepoint);
+  kbts_u8  WordBreakClass     = kbts_GetUnicodeWordBreakClass(Codepoint);
+  kbts_u8  LastScript         = State->LastScripts[0];
+  kbts_u32 FlagState          = State->FlagState << 8;
+  kbts_u8  LastLineBreakClass = State->LastLineBreakClass;
   // Super secret cheat code for signaling end-of-text
-  int EndOfText = (Codepoint == 3) && MaybeEndOfText;
+  int EndOfText   = (Codepoint == 3) && MaybeEndOfText;
   int StartOfText = !(State->Flags & KBTS_BREAK_STATE_FLAG_STARTED);
-  kbts_u32 LineBreakHistory = State->LineBreakHistory;
-  kbts_u32 WordBreakHistory = State->WordBreakHistory;
-  kbts_u8 LastWordBreakClass = State->LastWordBreakClass;
-  kbts_s16 WordBreak2PositionOffset = State->WordBreak2PositionOffset;
-  kbts_u8 LastWordBreakClassIncludingIgnored = State->LastWordBreakClassIncludingIgnored;
-  kbts_s16 PositionOffset2 = State->PositionOffset2;
-  kbts_s16 PositionOffset3 = State->PositionOffset3;
-  kbts_u32 Flags = State->Flags;
+  kbts_u32 LineBreakHistory                   = State->LineBreakHistory;
+  kbts_u32 WordBreakHistory                   = State->WordBreakHistory;
+  kbts_u8  LastWordBreakClass                 = State->LastWordBreakClass;
+  kbts_s16 WordBreak2PositionOffset           = State->WordBreak2PositionOffset;
+  kbts_u8  LastWordBreakClassIncludingIgnored = State->LastWordBreakClassIncludingIgnored;
+  kbts_s16 PositionOffset2                    = State->PositionOffset2;
+  kbts_s16 PositionOffset3                    = State->PositionOffset3;
+  kbts_u32 Flags                              = State->Flags;
   kbts_direction LastDirection = State->LastDirection;
 
   if(StartOfText)
@@ -22967,13 +22948,10 @@ static void kbts_BreakAddCodepoint_(kbts_break_state *State, kbts_u32 Codepoint,
     LineBreakHistory = LastLineBreakClass = KBTS_LINE_BREAK_CLASS_SOT;
     WordBreakHistory = LastWordBreakClass = KBTS_WORD_BREAK_CLASS_SOT;
   }
-
-
   if((Script == KBTS_SCRIPT_DEFAULT) || (Script == KBTS_SCRIPT_DEFAULT2))
   {
     Script = LastScript;
   }
-
   // Bracket pairing overrides default directions/scripts.
   if(UnicodeFlags & KBTS_UNICODE_FLAG_OPEN_BRACKET)
   {
@@ -23000,30 +22978,24 @@ static void kbts_BreakAddCodepoint_(kbts_break_state *State, kbts_u32 Codepoint,
       KBTS_FOR(BracketIndex, 0, State->BracketCount)
       {
         kbts_bracket *Bracket = &State->Brackets[State->BracketCount - 1 - BracketIndex];
-
         if(Bracket->Codepoint == MatchingBracket)
         {
           FoundBracket = Bracket;
           FoundBracketIndex = State->BracketCount - 1 - BracketIndex;
-
           break;
         }
       }
-
       if(FoundBracket)
       {
         BidirectionalClass = FoundBracket->Direction;
         Script = FoundBracket->Script;
-
         State->BracketCount = (kbts_u32)FoundBracketIndex;
       }
     }
   }
-
   { // Direction breaking.
     kbts_u8 Bidirectional2 = State->BidirectionalClass2;
     kbts_u8 Bidirectional1 = State->BidirectionalClass1;
-
     switch(BidirectionalClass)
     {
     case KBTS_UNICODE_BIDIRECTIONAL_CLASS_NSM: BidirectionalClass = Bidirectional1; break;
